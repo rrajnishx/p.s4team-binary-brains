@@ -1,36 +1,55 @@
 "use client";
 
+import { useState, useEffect } from 'react';
+
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Leaf, Satellite, Activity, ShieldCheck, MapPin } from 'lucide-react';
 import CountUp from 'react-countup';
 
-const ParticleBackground = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {[...Array(20)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="absolute w-1 h-1 bg-accent-green/30 rounded-full"
-        initial={{
-          x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-          y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
-          opacity: Math.random() * 0.5 + 0.1
-        }}
-        animate={{
-          y: [null, Math.random() * -100 - 50],
-          opacity: [null, 0]
-        }}
-        transition={{
-          duration: Math.random() * 5 + 5,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-      />
-    ))}
-    <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-accent-green/10 blur-[150px]" />
-    <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accent-cyan/10 blur-[150px]" />
-  </div>
-);
+const ParticleBackground = () => {
+  const [particles, setParticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    const generated = Array.from({ length: 20 }).map(() => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      opacity: Math.random() * 0.5 + 0.1,
+      duration: Math.random() * 5 + 5,
+      yAnim: Math.random() * -100 - 50
+    }));
+    setParticles(generated);
+  }, []);
+
+  if (particles.length === 0) return null;
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 bg-accent-green/30 rounded-full"
+          initial={{
+            x: p.x,
+            y: p.y,
+            opacity: p.opacity
+          }}
+          animate={{
+            y: [null, p.yAnim],
+            opacity: [null, 0]
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+      ))}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-accent-green/10 blur-[150px]" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accent-cyan/10 blur-[150px]" />
+    </div>
+  );
+};
 
 export default function Home() {
   return (

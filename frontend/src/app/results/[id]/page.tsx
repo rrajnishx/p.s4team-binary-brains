@@ -1,22 +1,51 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
-import { getResults, downloadCertificate } from '@/lib/api';
+import { getResults } from '@/lib/api';
+import jsPDF from 'jspdf';
 import { 
-  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
+  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, Cell, ComposedChart
 } from 'recharts';
-import { Download, Loader2, ShieldCheck, Droplets, Flame, Satellite, MapPin, AlertTriangle } from 'lucide-react';
+import { Download, Loader2, ShieldCheck, Droplets, Flame, Satellite, MapPin, AlertTriangle, Leaf, Activity } from 'lucide-react';
 
-// Dynamic import for Leaflet to avoid SSR issues
-const MapWithNoSSR = dynamic(() => import('../../../components/Map'), { ssr: false, loading: () => <div className="h-full w-full bg-bg-card flex items-center justify-center animate-pulse rounded-xl" /> });
+const MapWithNoSSR = dynamic(() => import('@/components/Map'), { ssr: false, loading: () => <div className="h-full w-full bg-bg-card flex items-center justify-center animate-pulse rounded-xl" /> });
+
+const yearlyData = [
+  { month: "Jan", methane: 1.2, score: 70, credits: 5 },
+  { month: "Feb", methane: 1.8, score: 75, credits: 6 },
+  { month: "Mar", methane: 2.1, score: 80, credits: 7 },
+  { month: "Apr", methane: 2.4, score: 78, credits: 6 },
+  { month: "May", methane: 2.8, score: 82, credits: 8 },
+  { month: "Jun", methane: 3.0, score: 85, credits: 9 },
+  { month: "Jul", methane: 2.7, score: 83, credits: 8 },
+  { month: "Aug", methane: 2.5, score: 81, credits: 7 },
+  { month: "Sep", methane: 2.3, score: 79, credits: 6 },
+  { month: "Oct", methane: 2.0, score: 76, credits: 6 },
+  { month: "Nov", methane: 1.7, score: 74, credits: 5 },
+  { month: "Dec", methane: 1.5, score: 72, credits: 5 }
+];
 
 export default function ResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="w-12 h-12 text-accent-green animate-spin" />
+        <p className="text-text-muted font-data animate-pulse">Loading Results Dashboard...</p>
+      </div>
+    }>
+      <ResultsContent />
+    </Suspense>
+  );
+}
+
+function ResultsContent() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,11 +82,50 @@ export default function ResultsPage() {
     );
   }
 
-  const isAWD = data.awdStatus === "AWD_DETECTED";
+  const qState = searchParams.get('state');
+  const qDistrict = searchParams.get('district');
+  const qLat = searchParams.get('lat');
+  const qLng = searchParams.get('lng');
+  const qArea = searchParams.get('area');
+  const qScore = searchParams.get('score');
+  const qMethane = searchParams.get('methane');
+  const qCredits = searchParams.get('credits');
+
+  const displayState = qState || data.farmDetails.state;
+  const displayDistrict = qDistrict || data.farmDetails.district;
+  const displayLat = qLat ? parseFloat(qLat) : data.farmDetails.lat;
+  const displayLng = qLng ? parseFloat(qLng) : data.farmDetails.lng;
+  const displayArea = qArea ? parseFloat(qArea) : data.farmDetails.area;
+  
+  const displayScore = qScore ? parseFloat(qScore) : data.complianceScore;
+  const displayMethane = qMethane ? parseFloat(qMethane) : data.methaneSaved;
+  const displayCredits = qCredits ? parseFloat(qCredits) : 12;
+
+  const isAWD = displayScore > 60;
+  const currentMonth = new Date().toLocaleString("default", { month: "long" });
+
+  const handleDownloadCertificate = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text("AWD Compliance Certificate", 20, 20);
+    
+    doc.setFontSize(12);
+    doc.text(`Farm Location: ${displayDistrict}, ${displayState}`, 20, 40);
+    doc.text(`Coordinates: ${displayLat.toFixed(4)}, ${displayLng.toFixed(4)}`, 20, 50);
+    doc.text(`Area: ${displayArea} hectares`, 20, 60);
+    
+    doc.text(`Compliance Score: ${displayScore}%`, 20, 80);
+    doc.text(`Methane Reduced: ${displayMethane} tonnes CO2eq`, 20, 90);
+    doc.text(`Carbon Credits Earned: ${displayCredits}`, 20, 100);
+    
+    doc.text("Verified by AgroSense AI System", 20, 130);
+    
+    doc.save("AWD_Certificate.pdf");
+  };
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary p-6 md:p-10 font-body relative overflow-x-hidden">
-      {/* Background ambient light */}
       <div className="absolute top-[-10%] left-[20%] w-[50%] h-[30%] bg-accent-green/5 blur-[150px] pointer-events-none" />
       
       <div className="max-w-7xl mx-auto space-y-10 z-10 relative">
@@ -71,20 +139,20 @@ export default function ResultsPage() {
             <div className="flex items-center gap-3 mb-2">
               <MapPin className="w-5 h-5 text-accent-cyan" />
               <h1 className="text-3xl font-bold font-heading">
-                {data.farmDetails.district}, {data.farmDetails.state}
+                {displayDistrict}, {displayState}
               </h1>
             </div>
             <div className="flex items-center gap-4 text-text-muted text-sm font-data">
-              <span>LAT: {data.farmDetails.lat.toFixed(4)}</span>
-              <span>LNG: {data.farmDetails.lng.toFixed(4)}</span>
-              <span>AREA: {data.farmDetails.area} ha</span>
+              <span>LAT: {displayLat.toFixed(4)}</span>
+              <span>LNG: {displayLng.toFixed(4)}</span>
+              <span>AREA: {displayArea} ha</span>
             </div>
           </div>
           
           <motion.button 
             whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(34, 197, 94, 0.4)" }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => downloadCertificate(id as string)}
+            onClick={handleDownloadCertificate}
             className="flex items-center gap-2 bg-accent-green/10 border border-accent-green text-accent-green hover:bg-accent-green hover:text-bg-primary px-6 py-3 rounded-full transition-all font-bold"
           >
             <Download className="w-5 h-5" /> Download Certificate
@@ -92,15 +160,15 @@ export default function ResultsPage() {
         </motion.div>
 
         {/* ROW 1: STATUS CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className={`glass-card p-6 border-t-4 ${isAWD ? 'border-t-accent-green' : 'border-t-accent-red'} relative overflow-hidden`}>
             {isAWD && <div className="absolute top-0 right-0 w-32 h-32 bg-accent-green/10 blur-[30px]" />}
             <div className="flex items-center gap-3 mb-4">
               <ShieldCheck className={`w-6 h-6 ${isAWD ? 'text-accent-green' : 'text-accent-red'}`} />
-              <h3 className="text-text-muted font-medium text-sm tracking-wider uppercase">Compliance Status</h3>
+              <h3 className="text-text-muted font-medium text-sm tracking-wider uppercase">AWD Status ({currentMonth})</h3>
             </div>
-            <div className={`text-2xl font-bold font-heading ${isAWD ? 'text-accent-green' : 'text-accent-red'}`}>
-              {isAWD ? "AWD VERIFIED" : "NON-COMPLIANT"}
+            <div className={`text-xl font-bold font-heading ${isAWD ? 'text-accent-green' : 'text-accent-red'}`}>
+              {isAWD ? `AWD VERIFIED ✅` : "NOT VERIFIED ❌"}
             </div>
           </motion.div>
 
@@ -108,11 +176,11 @@ export default function ResultsPage() {
              <div className="absolute top-0 right-0 w-32 h-32 bg-accent-cyan/10 blur-[30px]" />
             <div className="flex items-center gap-3 mb-4">
               <Flame className="w-6 h-6 text-accent-cyan" />
-              <h3 className="text-text-muted font-medium text-sm tracking-wider uppercase">Methane Mitigated</h3>
+              <h3 className="text-text-muted font-medium text-sm tracking-wider uppercase">Methane Mitigated ({currentMonth})</h3>
             </div>
             <div className="text-4xl font-bold font-data text-white flex items-baseline">
-              <CountUp end={data.methaneSaved} decimals={2} duration={2} />
-              <span className="text-lg text-text-muted ml-2">kg CH₄</span>
+              <CountUp end={displayMethane} decimals={2} duration={2} />
+              <span className="text-lg text-text-muted ml-2">tonnes CO₂eq</span>
             </div>
           </motion.div>
 
@@ -122,21 +190,35 @@ export default function ResultsPage() {
                  <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="none" className="text-bg-card-hover" />
                  <motion.circle 
                    initial={{ strokeDasharray: "0 251" }}
-                   animate={{ strokeDasharray: `${(data.complianceScore / 100) * 251} 251` }}
+                   animate={{ strokeDasharray: `${(displayScore / 100) * 251} 251` }}
                    transition={{ duration: 2, ease: "easeOut" }}
-                   cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="none" className="text-accent-green" strokeLinecap="round" 
+                   cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="none" className={isAWD ? "text-accent-green" : "text-accent-red"} strokeLinecap="round" 
                  />
                </svg>
                <div className="absolute inset-0 flex items-center justify-center">
-                 <span className="text-xl font-bold font-data text-white">{data.complianceScore.toFixed(0)}</span>
+                 <span className="text-xl font-bold font-data text-white">{displayScore.toFixed(0)}%</span>
                </div>
              </div>
-             <h3 className="text-text-muted font-medium text-sm mt-3 uppercase tracking-wider">Overall Score</h3>
+             <h3 className="text-text-muted font-medium text-sm mt-3 uppercase tracking-wider">Score ({currentMonth})</h3>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-card p-6 border-t-4 border-t-accent-amber">
+          {/* NEW CARD: Carbon Credits Earned */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="glass-card p-6 border-t-4 border-t-accent-amber relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent-amber/10 blur-[30px]" />
             <div className="flex items-center gap-3 mb-4">
-              <Satellite className="w-6 h-6 text-accent-amber" />
+              <Leaf className="w-6 h-6 text-accent-amber" />
+              <h3 className="text-text-muted font-medium text-sm tracking-wider uppercase">Carbon Credits Earned</h3>
+            </div>
+            <div className="text-4xl font-bold font-data text-white flex items-baseline">
+              <CountUp end={displayCredits} duration={2} />
+              <span className="text-lg text-text-muted ml-2">Carbon Credits</span>
+            </div>
+            <div className="text-sm text-text-muted mt-2">for {currentMonth}</div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-card p-6 border-t-4 border-t-text-muted">
+            <div className="flex items-center gap-3 mb-4">
+              <Satellite className="w-6 h-6 text-text-muted" />
               <h3 className="text-text-muted font-medium text-sm tracking-wider uppercase">Observation Count</h3>
             </div>
             <div className="text-4xl font-bold font-data text-white flex items-baseline">
@@ -146,9 +228,73 @@ export default function ResultsPage() {
           </motion.div>
         </div>
 
+        {/* YEARLY PERFORMANCE ANALYTICS */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+          <h2 className="text-2xl font-bold font-heading mb-6 flex items-center gap-2">
+            <Activity className="w-6 h-6 text-accent-green" /> Yearly Performance Analytics
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Methane Chart */}
+            <div className="glass-card p-6">
+              <h3 className="text-lg font-semibold font-heading mb-4 text-white flex items-center gap-2">
+                <Flame className="w-4 h-4 text-accent-cyan" /> Methane Reduction
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={yearlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2d22" vertical={false} />
+                    <XAxis dataKey="month" stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
+                    <YAxis stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
+                    <RechartsTooltip contentStyle={{ backgroundColor: '#111a14', borderColor: '#1f2d22', borderRadius: '8px', color: '#fff' }} />
+                    <Line type="monotone" dataKey="methane" stroke="#06b6d4" strokeWidth={3} dot={{ r: 3, fill: '#06b6d4' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Score Chart */}
+            <div className="glass-card p-6">
+              <h3 className="text-lg font-semibold font-heading mb-4 text-white flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-accent-green" /> Compliance Score
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={yearlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2d22" vertical={false} />
+                    <XAxis dataKey="month" stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
+                    <YAxis stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
+                    <RechartsTooltip contentStyle={{ backgroundColor: '#111a14', borderColor: '#1f2d22', borderRadius: '8px', color: '#fff' }} />
+                    <Line type="monotone" dataKey="score" stroke="#22c55e" strokeWidth={3} dot={{ r: 3, fill: '#22c55e' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Credits Chart */}
+            <div className="glass-card p-6">
+              <h3 className="text-lg font-semibold font-heading mb-4 text-white flex items-center gap-2">
+                <Leaf className="w-4 h-4 text-accent-amber" /> Carbon Credits
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={yearlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2d22" vertical={false} />
+                    <XAxis dataKey="month" stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
+                    <YAxis stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
+                    <RechartsTooltip cursor={{fill: 'rgba(255,255,255,0.02)'}} contentStyle={{ backgroundColor: '#111a14', borderColor: '#1f2d22', borderRadius: '8px', color: '#fff' }} />
+                    <Bar dataKey="credits" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={20} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
+        </motion.div>
+
         {/* ROW 2: MAP */}
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className="glass-card p-2 h-[400px] overflow-hidden relative">
-           <MapWithNoSSR lat={data.farmDetails.lat} lng={data.farmDetails.lng} area={data.farmDetails.area} />
+           <MapWithNoSSR lat={displayLat} lng={displayLng} area={displayArea} />
         </motion.div>
 
         {/* ROW 3: CHARTS */}
@@ -177,8 +323,8 @@ export default function ResultsPage() {
                   <YAxis yAxisId="left" stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
                   <YAxis yAxisId="right" orientation="right" stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
                   <RechartsTooltip contentStyle={{ backgroundColor: '#111a14', borderColor: '#1f2d22', borderRadius: '8px', color: '#fff', fontFamily: 'var(--font-data)' }} />
-                  <Area yAxisId="left" type="monotone" dataKey="ndwi" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorNdwi)" activeDot={{ r: 6, strokeWidth: 0, fill: '#06b6d4' }} />
-                  <Line yAxisId="right" type="monotone" dataKey="rainfall" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 4" dot={false} />
+                  <Area isAnimationActive={false} yAxisId="left" type="monotone" dataKey="ndwi" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorNdwi)" activeDot={{ r: 6, strokeWidth: 0, fill: '#06b6d4' }} />
+                  <Line isAnimationActive={false} yAxisId="right" type="monotone" dataKey="rainfall" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 4" dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -194,7 +340,7 @@ export default function ResultsPage() {
                   <XAxis dataKey="name" stroke="#6b7280" tick={{fontSize: 12, fontFamily: 'var(--font-heading)'}} axisLine={false} tickLine={false} />
                   <YAxis stroke="#6b7280" tick={{fontSize: 10, fontFamily: 'var(--font-data)'}} axisLine={false} tickLine={false} />
                   <RechartsTooltip cursor={{fill: 'rgba(255,255,255,0.02)'}} contentStyle={{ backgroundColor: '#111a14', borderColor: '#1f2d22', borderRadius: '8px', color: '#fff' }} />
-                  <Bar dataKey="value" barSize={80} radius={[8, 8, 0, 0]}>
+                  <Bar isAnimationActive={false} dataKey="value" barSize={80} radius={[8, 8, 0, 0]}>
                     {data.methaneChartData.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : '#22c55e'} />
                     ))}

@@ -68,22 +68,10 @@ exports.analyzeFarm = async (req, res) => {
     // We always return 200
     res.status(200).json({ success: true, farmId: farmId, message: "Analysis complete" });
   } catch (error) {
-    console.error("Analyze Error:", error);
-
-    // Fallback response as requested
+    console.error(error);
     return res.status(200).json({
       success: false,
-      message: "Fallback response (simulation)",
-      farmId: "mock-farm-123",
-      data: {
-        awdResult: {
-          awdDetected: true,
-          confidenceScore: 78,
-        },
-        methane: {
-          saved: 2.4,
-        },
-      },
+      fallback: true
     });
   }
 };

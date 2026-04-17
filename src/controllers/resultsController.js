@@ -99,19 +99,10 @@ exports.getResults = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Results Fetch Error:", error);
-    // Even if complete logic fails, return mock data
-    res.status(200).json({
+    console.error(error);
+    return res.status(200).json({
       success: false,
-      message: "Fallback simulation data",
-      awdStatus: "AWD_DETECTED",
-      methaneSaved: 2.4,
-      complianceScore: 78,
-      satelliteObservations: 12,
-      waterLevelGraphData: [],
-      methaneChartData: [],
-      timelineData: [],
-      farmDetails: { lat: 0, lng: 0, state: "Unknown", district: "Unknown", area: 0 }
+      fallback: true
     });
   }
 };

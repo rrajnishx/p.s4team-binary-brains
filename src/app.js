@@ -8,7 +8,9 @@ const certificateRoutes = require('./routes/certificateRoutes');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "*"
+}));
 app.use(express.json());
 
 // Routes
@@ -22,16 +24,15 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Backend is running');
+  res.send('Backend running');
 });
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("Global Error:", err);
-  res.status(500).json({
+  console.error("SERVER ERROR:", err.message);
+  res.status(200).json({
     success: false,
-    message: "Internal Server Error",
-    error: err.message,
+    fallback: true
   });
 });
 
