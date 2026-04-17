@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AgroSense – AWD Intelligence Dashboard Backend
 
 This is the production-ready backend API system for the AgroSense platform, designed to simulate AWD detection, fetch weather data, compute methane savings via the IPCC model, and generate PDF compliance certificates.
@@ -56,3 +57,10 @@ This project is configured out-of-the-box for cloud platforms like Railway or Re
    - The platform will automatically run `npm install` and the `postinstall` hook (`prisma generate`).
    - Start Command is automatically read from `npm start` (`node src/app.js`).
 5. **Database Push:** Make sure to run `npx prisma db push` once connected to your production DB to initialize the tables.
+=======
+# binary-brains-SBK-F20_SKB-P4
+hackathon
+team name- binary brains 
+problem statement - SKB_P4. Stochastic Multi Modal Fusion for "Cloud Proof" dMRV 
+and Methane Aware Carbon Governance
+>>>>>>> c78de70a76efae9e445e42b8d6c5a44c29673e5f
