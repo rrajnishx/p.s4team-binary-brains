@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
@@ -34,3 +35,10 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+=======
+# binary-brains-SBK-F20_SKB-P4
+hackathon
+team name- binary brains 
+problem statement - SKB_P4. Stochastic Multi Modal Fusion for "Cloud Proof" dMRV 
+and Methane Aware Carbon Governance
+>>>>>>> c78de70a76efae9e445e42b8d6c5a44c29673e5f
