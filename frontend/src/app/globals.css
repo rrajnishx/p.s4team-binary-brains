@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0a0f0d;
+  --bg-card: #111a14;
+  --bg-card-hover: #162019;
+  --accent-green: #22c55e;
+  --accent-cyan: #06b6d4;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --text-primary: #f0fdf4;
+  --text-muted: #6b7280;
+  --border: #1f2d22;
+}
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-accent-green: var(--accent-green);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-red: var(--accent-red);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+
+  --font-heading: var(--font-space-grotesk);
+  --font-data: var(--font-jetbrains-mono);
+  --font-body: var(--font-inter);
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+.data-font {
+  font-family: var(--font-data);
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(17, 26, 20, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(34, 197, 94, 0.3); /* Soft green glow border on hover */
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.05);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Map override for dark mode */
+.leaflet-container {
+  background: #0a0f0d !important;
+}
+.leaflet-layer,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}

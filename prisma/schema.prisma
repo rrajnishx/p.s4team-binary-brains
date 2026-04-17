@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Farm {
+  id        String   @id @default(uuid())
+  lat       Float
+  lng       Float
+  state     String
+  district  String
+  area      Float
+  createdAt DateTime @default(now())
+
+  analysis      Analysis?
+  satelliteData SatelliteData[]
+}
+
+model Analysis {
+  id            String   @id @default(uuid())
+  farmId        String   @unique
+  farm          Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  awdStatus     String   // "AWD_DETECTED", "NO_AWD"
+  confidenceScore Float
+  methaneSaved  Float
+  baselineCH4   Float
+  actualCH4     Float
+  co2Equivalent Float
+  score         Float    // Compliance score
+  createdAt     DateTime @default(now())
+}
+
+model SatelliteData {
+  id           String   @id @default(uuid())
+  farmId       String
+  farm         Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  date         DateTime
+  ndvi         Float
+  ndwi         Float
+  moisture     Float
+  rainfall     Float
+  temperature  Float
+  vvBackscatter Float
+  vhBackscatter Float
+  eventType    String?  // "RAIN_EVENT", "IRRIGATION_EVENT", "DRY"
+}
