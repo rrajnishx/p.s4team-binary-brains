@@ -60,7 +60,11 @@ export default function AnalyzePage() {
       setProgress(100);
       
       setTimeout(() => {
-        router.push(`/results/${result.farmId}`);
+        if (result.fallback) {
+          router.push(`/results/mock-farm-123`);
+        } else {
+          router.push(`/results/${result.farmId}`);
+        }
       }, 500);
     } catch (error) {
       console.error(error);

@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: "http://localhost:5000",
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -9,11 +10,14 @@ const api = axios.create({
 
 export const analyzeFarm = async (data) => {
   try {
-    const response = await api.post('/api/farm/analyze', data);
+    const response = await api.post("/api/farm/analyze", data);
     return response.data;
   } catch (error) {
-    console.error("API Error:", error);
-    throw error;
+    console.error("API Error:", error.message);
+    return {
+      success: false,
+      fallback: true
+    };
   }
 };
 

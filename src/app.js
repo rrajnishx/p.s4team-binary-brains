@@ -21,6 +21,10 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'AgroSense Backend Running' });
 });
 
+app.get('/', (req, res) => {
+  res.send('Backend is running');
+});
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error("Global Error:", err);
@@ -35,7 +39,7 @@ const PORT = process.env.PORT || 5000;
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Backend running at http://localhost:${PORT}`);
   });
 }
 

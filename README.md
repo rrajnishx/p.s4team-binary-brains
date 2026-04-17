@@ -1,17 +1,37 @@
-<<<<<<< HEAD
 # AgroSense – AWD Intelligence Dashboard Backend
 
-This is the production-ready backend API system for the AgroSense platform, designed to simulate AWD detection, fetch weather data, compute methane savings via the IPCC model, and generate PDF compliance certificates.
+This is the production-ready full-stack system for the AgroSense platform, designed to simulate AWD detection, fetch weather data, compute methane savings via the IPCC model, and generate PDF compliance certificates.
 
-## Tech Stack
-- **Node.js + Express.js**
-- **PostgreSQL** via Prisma ORM
-- **pdfkit** for certificate generation
-- **Axios** for OpenWeather API integration
+**Team Name:** binary brains 
+**Problem Statement:** SKB_P4. Stochastic Multi Modal Fusion for "Cloud Proof" dMRV and Methane Aware Carbon Governance
 
 ## Getting Started Locally
 
-1. Install dependencies:
+### Running the Application
+
+You can start both the backend and frontend servers with a single command from the root directory:
+
+```bash
+npm run dev:all
+```
+
+Alternatively, you can run them in separate terminals:
+
+**Terminal 1 (Backend - Port 5000):**
+```bash
+cd <project-root>
+npm run dev
+```
+
+**Terminal 2 (Frontend - Port 3000):**
+```bash
+cd frontend
+npm run dev
+```
+
+### Installation & Setup
+
+1. Install backend dependencies:
    ```bash
    npm install
    ```
@@ -29,11 +49,6 @@ This is the production-ready backend API system for the AgroSense platform, desi
    ```
    *(Ensure you have a PostgreSQL database running and configured in `DATABASE_URL`)*
 
-4. Start the server:
-   ```bash
-   npm run dev
-   ```
-
 ## API Endpoints
 
 ### 1. `POST /api/farm/analyze`
@@ -46,6 +61,9 @@ Returns full dashboard-ready JSON (Recharts compatible) containing analysis data
 ### 3. `GET /api/certificate/:farmId`
 Downloads a generated PDF certificate for the farm's compliance.
 
+### 4. `GET /`
+Health check route to verify the backend is running.
+
 ## Deployment on Railway / Render
 
 This project is configured out-of-the-box for cloud platforms like Railway or Render.
@@ -57,10 +75,3 @@ This project is configured out-of-the-box for cloud platforms like Railway or Re
    - The platform will automatically run `npm install` and the `postinstall` hook (`prisma generate`).
    - Start Command is automatically read from `npm start` (`node src/app.js`).
 5. **Database Push:** Make sure to run `npx prisma db push` once connected to your production DB to initialize the tables.
-=======
-# binary-brains-SBK-F20_SKB-P4
-hackathon
-team name- binary brains 
-problem statement - SKB_P4. Stochastic Multi Modal Fusion for "Cloud Proof" dMRV 
-and Methane Aware Carbon Governance
->>>>>>> c78de70a76efae9e445e42b8d6c5a44c29673e5f
